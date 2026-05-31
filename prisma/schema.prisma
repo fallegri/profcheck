@@ -1,0 +1,126 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for administrators
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  googleId      String    @unique
+  accessToken   String?   @db.Text // Encrypted
+  refreshToken  String?   @db.Text // Encrypted
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  events        Event[]
+
+  @@index([email])
+  @@index([googleId])
+}
+
+// Event model
+model Event {
+  id            String    @id @default(cuid())
+  name          String
+  description   String    @db.Text
+  adminId       String
+  googleFolderId String?
+  googleFolderUrl String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  admin         User      @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  professions   EventProfession[]
+  selections    VisitorSelection[]
+  sessions      VisitorSession[]
+
+  @@index([adminId])
+  @@index([createdAt])
+}
+
+// Profession model
+model Profession {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  description   String    @db.Text
+  futureInfo    String    @db.Text
+  imageUrl      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  events        EventProfession[]
+  selections    VisitorSelection[]
+
+  @@index([name])
+}
+
+// EventProfession model (many-to-many with additional data)
+model EventProfession {
+  id            String    @id @default(cuid())
+  eventId       String
+  professionId  String
+  order         Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  event         Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  profession    Profession @relation(fields: [professionId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, professionId])
+  @@index([eventId])
+  @@index([professionId])
+}
+
+// VisitorSession model
+model VisitorSession {
+  id            String    @id @default(cuid())
+  eventId       String
+  sessionToken  String    @unique
+  createdAt     DateTime  @default(now())
+  expiresAt     DateTime
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  event         Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  selections    VisitorSelection[]
+
+  @@index([eventId])
+  @@index([sessionToken])
+  @@index([expiresAt])
+}
+
+// VisitorSelection model
+model VisitorSelection {
+  id            String    @id @default(cuid())
+  eventId       String
+  professionId  String
+  sessionId     String
+  timestamp     DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  event         Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  profession    Profession @relation(fields: [professionId], references: [id], onDelete: Cascade)
+  session       VisitorSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, professionId, sessionId, timestamp])
+  @@index([eventId])
+  @@index([professionId])
+  @@index([sessionId])
+  @@index([timestamp])
+}
