@@ -1,17 +1,6 @@
 {
-  "buildCommand": "prisma generate && next build",
-  "outputDirectory": ".next",
   "framework": "nextjs",
   "regions": ["iad1"],
-  "env": {
-    "NEXTAUTH_URL": "@NEXTAUTH_URL",
-    "NEXTAUTH_SECRET": "@NEXTAUTH_SECRET",
-    "GOOGLE_CLIENT_ID": "@GOOGLE_CLIENT_ID",
-    "GOOGLE_CLIENT_SECRET": "@GOOGLE_CLIENT_SECRET",
-    "DATABASE_URL": "@DATABASE_URL",
-    "ENCRYPTION_KEY": "@ENCRYPTION_KEY",
-    "GOOGLE_DRIVE_API_KEY": "@GOOGLE_DRIVE_API_KEY"
-  },
   "headers": [
     {
       "source": "/(.*)",
@@ -27,10 +16,6 @@
         {
           "key": "X-Frame-Options",
           "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
         },
         {
           "key": "Referrer-Policy",
